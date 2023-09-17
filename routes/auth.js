@@ -4,6 +4,7 @@ const User = require('../models/User')
 const { body, validationResult } = require('express-validator');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
+const fetchuser = require('../middleware/fetchuser');
 
 const JWT_SECRET = 'MYJSON@@WEB@@Secret';
 router.get('/', (req, res)=>{
@@ -84,4 +85,16 @@ router.post('/login',[
     }
 })
 
+
+router.get('/getuser',fetchuser, async (req, res)=>{
+    try {
+        const userId = req.userid;
+        let user = await User.findById(userId).select('-password');
+        res.send(user);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({error: 'Internal server error'});
+    }
+    
+})
 module.exports = router
