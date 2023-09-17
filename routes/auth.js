@@ -15,21 +15,27 @@ router.post('/',[
     body('name', 'Enter a valid name').isLength({min: 3}),
     body('email', 'Enter a valid name').isEmail(),
     body('password').isLength({min: 5})
-], (req, res)=>{
+], async (req, res)=>{
     const error = validationResult(req)
     if(!error.isEmpty()){
         return res.status(400).json({errors: error.array()});
     }
     console.log(req.body);
-    const user = User.create({
+    try{
+        let user = await User.find({email: req.body.email});
+    if(user){
+        res.status(400).json({error: 'Sorry user with this eamail already exist'})
+    }
+     user = await User.create({
         name: req.body.name,
         email: req.body.email,
         password: req.body.password
-    }).then(
-        user => res.json(user)
-    ).catch(
-        err => res.json({error: 'Please enter uniques value for the email', message: err.message})
-    )
+    })
+    }catch(error){
+        console.error(error.message);
+        res.status(500).send("some error occured");
+    }
+    
     
 } )
 
