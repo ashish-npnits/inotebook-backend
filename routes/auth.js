@@ -14,7 +14,7 @@ router.get('/', (req, res)=>{
     res.json(obj)
 } )
 
-router.post('/',[
+router.post('/createuser',[
     body('name', 'Enter a valid name').isLength({min: 3}),
     body('email', 'Enter a valid name').isEmail(),
     body('password').isLength({min: 5})
@@ -52,5 +52,36 @@ router.post('/',[
     
     
 } )
+
+
+
+router.post('/login',[
+    body('email', 'Enter a valid name').isEmail(),
+    body('password','Password cannot be blank').exists()
+], async (req, res)=>{
+    const error = validationResult(req)
+    if(!error.isEmpty()){
+        return res.status(400).json({errors: error.array()});
+    }
+
+    const {email, password} = req.body;
+    try {
+        let user = await User.findOne({email});
+        if(!user){
+            return res.status(400).json({error: 'please try to login with correct credentials'});
+        }
+        console.log('user.password '+ user.password);
+        const passwordCompare = await bcrypt.compare(password, user.password);
+
+        if(!passwordCompare)
+            return res.status(400).json({error: 'please try to login with correct credentials'});
+
+
+        var authtoken = jwt.sign({ id: user.id }, JWT_SECRET);
+        res.send({authtoken});
+    } catch (error) {
+        return res.status(500).json({error: 'Internal server error'});
+    }
+})
 
 module.exports = router
