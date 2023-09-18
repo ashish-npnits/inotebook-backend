@@ -44,10 +44,10 @@ router.post('/createuser',[
 
     var authtoken = jwt.sign({ id: user.id }, JWT_SECRET);
 
-    res.send({authtoken});
+    res.status(200).json({success:true,authtoken});
     }catch(error){
         console.error(error.message);
-        res.status(500).send("some error occured");
+        res.status(500).json("some error occured");
         return ;
     }
     
@@ -69,19 +69,19 @@ router.post('/login',[
     try {
         let user = await User.findOne({email});
         if(!user){
-            return res.status(400).json({error: 'please try to login with correct credentials'});
+            return res.status(400).json({success:false, error: 'please try to login with correct credentials'});
         }
         console.log('user.password '+ user.password);
         const passwordCompare = await bcrypt.compare(password, user.password);
 
         if(!passwordCompare)
-            return res.status(400).json({error: 'please try to login with correct credentials'});
+            return res.status(400).json({success:false, error: 'please try to login with correct credentials'});
 
 
         var authtoken = jwt.sign({ id: user.id }, JWT_SECRET);
-        res.send({authtoken});
+        res.status(200).json({success:true,authtoken});
     } catch (error) {
-        return res.status(500).json({error: 'Internal server error'});
+        return res.status(500).json({success:false, error: 'Internal server error'});
     }
 })
 
@@ -90,10 +90,10 @@ router.get('/getuser',fetchuser, async (req, res)=>{
     try {
         const userId = req.userid;
         let user = await User.findById(userId).select('-password');
-        res.send(user);
+        res.status(200).json({success:true,user});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({error: 'Internal server error'});
+        return res.status(500).json({success:false, error: 'Internal server error'});
     }
     
 })
